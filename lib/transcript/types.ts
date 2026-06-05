@@ -5,6 +5,7 @@ export type TranscriptSegment = {
 };
 
 export type TranscriptSource =
+  | "external-transcript-api"
   | "youtube-transcript-package"
   | "youtube-captions"
   | "youtubetranscript";

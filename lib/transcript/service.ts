@@ -1,13 +1,17 @@
+import { externalTranscriptApiProvider, hasExternalTranscriptApi } from "./providers/external-transcript-api";
 import { transcriptSiteProvider } from "./providers/transcript-site";
 import { youtubeCaptionsProvider } from "./providers/youtube-captions";
 import { youtubeTranscriptPackageProvider } from "./providers/youtube-transcript-package";
 import type { TranscriptAttempt, TranscriptProvider, TranscriptReport, TranscriptResult } from "./types";
 
-const providers: TranscriptProvider[] = [
-  youtubeTranscriptPackageProvider,
-  youtubeCaptionsProvider,
-  transcriptSiteProvider,
-];
+function getProviders(): TranscriptProvider[] {
+  return [
+    ...(hasExternalTranscriptApi() ? [externalTranscriptApiProvider] : []),
+    youtubeTranscriptPackageProvider,
+    youtubeCaptionsProvider,
+    transcriptSiteProvider,
+  ];
+}
 
 export async function getTranscript(videoId: string): Promise<TranscriptResult | null> {
   return (await getTranscriptReport(videoId)).result;
@@ -16,7 +20,7 @@ export async function getTranscript(videoId: string): Promise<TranscriptResult |
 export async function getTranscriptReport(videoId: string): Promise<TranscriptReport> {
   const attempts: TranscriptAttempt[] = [];
 
-  for (const provider of providers) {
+  for (const provider of getProviders()) {
     try {
       const segments = await provider.fetchTranscript(videoId);
       if (segments.length > 0) {
@@ -52,6 +56,10 @@ export async function getTranscriptReport(videoId: string): Promise<TranscriptRe
 }
 
 export function hasDeploymentFetchFailure(attempts: TranscriptAttempt[]) {
+  if (process.env.VERCEL === "1") {
+    return attempts.length > 0 && attempts.every((attempt) => attempt.status !== "success");
+  }
+
   return attempts.some(
     (attempt) =>
       attempt.status === "error" &&

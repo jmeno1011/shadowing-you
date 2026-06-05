@@ -32,6 +32,39 @@ vercel --prod
 
 GitHub 저장소와 Vercel을 연결하는 경우 별도 빌드 설정 없이 Next.js로 자동 인식됩니다.
 
+### Vercel transcript fallback
+
+Vercel 서버리스 환경에서 YouTube transcript 요청이 계속 실패하면 별도 Node 서버나 유료 transcript API를 연결할 수 있습니다.
+
+Vercel 환경 변수:
+
+```text
+TRANSCRIPT_API_URL=https://your-transcript-api.example.com/transcript
+TRANSCRIPT_API_KEY=optional-bearer-token
+```
+
+외부 API는 다음 요청을 받습니다.
+
+```text
+GET /transcript?videoId=_5siHrpPnmw
+```
+
+응답은 아래 둘 중 하나면 됩니다.
+
+```json
+{
+  "segments": [
+    { "start": 0, "dur": 3.2, "text": "Hello." }
+  ]
+}
+```
+
+```json
+[
+  { "start": 0, "dur": 3.2, "text": "Hello." }
+]
+```
+
 ## CORS 프록시 403 에러 기록
 
 기존 정적 HTML 버전은 브라우저에서 다음과 같은 외부 프록시를 직접 호출했습니다.

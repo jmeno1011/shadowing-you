@@ -4,6 +4,9 @@ import { getTranscriptReport, hasDeploymentFetchFailure } from "../../../lib/tra
 const VIDEO_ID_PATTERN = /^[a-zA-Z0-9_-]{11}$/;
 
 export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+export const fetchCache = "force-no-store";
+export const maxDuration = 30;
 
 export async function GET(request: NextRequest) {
   const videoId = request.nextUrl.searchParams.get("videoId");

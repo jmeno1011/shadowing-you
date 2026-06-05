@@ -99,7 +99,7 @@ type Segment = {
 }
 ```
 
-이 경우 영상에 자막이 없다는 뜻이 아니라, Vercel 서버리스 함수의 outbound 요청이 YouTube 또는 보조 transcript 사이트에서 차단되거나 rate limit을 받은 상황일 수 있다. 로컬 개발 환경과 Vercel 배포 환경은 요청 IP, 데이터센터, 네트워크 평판이 다르기 때문에 같은 video id도 결과가 다를 수 있다.
+이 경우 영상에 자막이 없다는 뜻이 아니라, Vercel 서버리스 함수의 outbound 요청이 YouTube 또는 보조 transcript 사이트에서 차단되거나 rate limit을 받은 상황일 수 있다. 로컬 개발 환경과 Vercel 배포 환경은 요청 IP와 네트워크 평판이 다르기 때문에 같은 video id도 결과가 다를 수 있다. 여러 YouTube 영상이 모두 같은 방식으로 실패한다면 특정 영상, BBC, 지역 제한 문제가 아니라 Vercel 서버리스 환경에서 transcript provider 접근 자체가 불안정한 것으로 본다.
 
 진단 방법:
 
@@ -114,12 +114,26 @@ curl "https://YOUR_DEPLOYMENT_URL/api/transcript?videoId=_5siHrpPnmw&debug=1"
 - transcript 외부 요청은 `cache: "no-store"`로 실행해 Vercel 캐시에 실패 응답이 고정되지 않게 한다.
 - provider 실패 이유를 삼키지 않고 API에서 `reason`으로 구분한다.
 - UI는 `no_public_transcript`와 `deployment_fetch_failed`를 다른 메시지로 보여준다.
+- route segment는 `dynamic = "force-dynamic"`, `fetchCache = "force-no-store"`, `maxDuration = 30`으로 설정한다.
+- Vercel 환경에서는 모든 provider가 실패하거나 빈 결과를 반환하면 실제 공개 자막 없음으로 단정하지 않고 `deployment_fetch_failed`로 분류한다. YouTube가 Vercel 요청에 대해 자막 없음/비활성화처럼 보이는 응답을 줄 수 있기 때문이다.
 
 장기 운영 대안:
 
-- Vercel 대신 YouTube 요청이 안정적인 별도 Node 서버에서 `/api/transcript`를 운영한다.
-- 신뢰 가능한 유료 transcript API를 provider로 추가하고 API key를 Vercel 환경 변수로 관리한다.
+- Vercel 대신 YouTube 요청이 안정적인 별도 Node 서버에서 transcript API를 운영한다.
+- `TRANSCRIPT_API_URL` 환경 변수를 설정하면 앱은 외부 transcript API를 첫 provider로 사용한다.
+- 필요하면 `TRANSCRIPT_API_KEY`를 설정해 외부 API에 `Authorization: Bearer ...` 헤더를 보낸다.
+- 신뢰 가능한 유료 transcript API를 provider로 연결하고 API key를 Vercel 환경 변수로 관리한다.
 - 공식 YouTube Data API는 caption 파일 다운로드에 OAuth/권한 제약이 있어 공개 영상 임의 자막 추출용 대체재로는 제한적이다.
+
+외부 transcript API 응답 형식:
+
+```json
+{
+  "segments": [
+    { "start": 0, "dur": 3.2, "text": "Hello." }
+  ]
+}
+```
 
 ## 한계
 
