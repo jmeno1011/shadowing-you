@@ -70,14 +70,26 @@ test("splits multiple sentences that arrive in a single caption segment", () => 
   ]);
 });
 
-test("does not merge standalone stage directions with spoken sentences", () => {
+test("omits standalone stage directions from the script", () => {
   const result = groupSegmentsIntoSentences([
     { start: 20, dur: 1, text: "(Laughter)" },
     { start: 21, dur: 1, text: "Let me explain why." },
   ]);
 
   assert.deepEqual(result, [
-    { start: 20, dur: 1, text: "(Laughter)" },
     { start: 21, dur: 1, text: "Let me explain why." },
+  ]);
+});
+
+test("removes inline stage directions from spoken sentences", () => {
+  const result = groupSegmentsIntoSentences([
+    { start: 30, dur: 1, text: "That was unexpected." },
+    { start: 31, dur: 1, text: "(Laughter)" },
+    { start: 32, dur: 1, text: "Let's continue. (Applause)" },
+  ]);
+
+  assert.deepEqual(result, [
+    { start: 30, dur: 1, text: "That was unexpected." },
+    { start: 32, dur: 1, text: "Let's continue." },
   ]);
 });

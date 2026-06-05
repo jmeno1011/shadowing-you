@@ -6,6 +6,7 @@ export type TranscriptSegment = {
 
 const SENTENCE_END_PATTERN = /(?:[.!?]|[.!?]["')\]])$/;
 const STAGE_DIRECTION_PATTERN = /^\([^)]*\)$/;
+const INLINE_STAGE_DIRECTION_PATTERN = /\s*\((?:laughter|laughs|laughing|applause|music|cheering|audience laughter|audience applauds|inaudible|silence)\)\s*/gi;
 const INTERNAL_SENTENCE_PATTERN = /[^.!?]+(?:[.!?]+["')\]]*|$)/g;
 
 export function groupSegmentsIntoSentences(segments: TranscriptSegment[]): TranscriptSegment[] {
@@ -13,12 +14,11 @@ export function groupSegmentsIntoSentences(segments: TranscriptSegment[]): Trans
   let current: TranscriptSegment | null = null;
 
   for (const segment of expandMultiSentenceSegments(segments)) {
-    const text = segment.text.replace(/\s+/g, " ").trim();
+    const text = normalizeSpokenText(segment.text);
     if (!text) continue;
 
     if (STAGE_DIRECTION_PATTERN.test(text)) {
       flushCurrent();
-      grouped.push({ ...segment, text });
       continue;
     }
 
@@ -81,9 +81,13 @@ function expandMultiSentenceSegments(segments: TranscriptSegment[]) {
 }
 
 function splitIntoSentenceParts(text: string) {
-  const normalized = text.replace(/\s+/g, " ").trim();
+  const normalized = normalizeSpokenText(text);
   if (!normalized) return [];
 
   const parts = normalized.match(INTERNAL_SENTENCE_PATTERN)?.map((part) => part.trim()).filter(Boolean) || [];
   return parts.length > 0 ? parts : [normalized];
+}
+
+function normalizeSpokenText(text: string) {
+  return text.replace(INLINE_STAGE_DIRECTION_PATTERN, " ").replace(/\s+/g, " ").trim();
 }
