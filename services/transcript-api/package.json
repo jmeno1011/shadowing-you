@@ -1,0 +1,12 @@
+{
+  "name": "shadowing-you-transcript-api",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node server.mjs"
+  },
+  "dependencies": {
+    "youtube-transcript": "^1.3.1"
+  }
+}

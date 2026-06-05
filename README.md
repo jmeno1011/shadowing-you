@@ -36,12 +36,30 @@ GitHub 저장소와 Vercel을 연결하는 경우 별도 빌드 설정 없이 Ne
 
 Vercel 서버리스 환경에서 YouTube transcript 요청이 계속 실패하면 별도 Node 서버나 유료 transcript API를 연결할 수 있습니다.
 
+이 저장소에는 Render용 wrapper API가 포함되어 있습니다.
+
+```text
+services/transcript-api
+```
+
+Render 설정:
+
+```text
+Runtime=Node
+Root Directory=services/transcript-api
+Build Command=npm install
+Start Command=npm start
+TRANSCRIPT_API_KEY=your-secret-token
+```
+
 Vercel 환경 변수:
 
 ```text
-TRANSCRIPT_API_URL=https://your-transcript-api.example.com/transcript
-TRANSCRIPT_API_KEY=optional-bearer-token
+TRANSCRIPT_API_URL=https://your-render-service.onrender.com/transcript
+TRANSCRIPT_API_KEY=your-secret-token
 ```
+
+Render 무료 web service는 비활성 상태 이후 cold start가 발생할 수 있어 첫 요청이 느릴 수 있습니다.
 
 외부 API는 다음 요청을 받습니다.
 
