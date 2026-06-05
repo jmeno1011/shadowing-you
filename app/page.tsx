@@ -19,9 +19,9 @@ const NO_TRANSCRIPT_MESSAGE =
   "No public transcript found. Captions may be disabled for this video, unavailable for Shorts, or restricted by YouTube. Paste the transcript manually to continue.";
 
 const examples = [
-  ["arj7oStGLkU", "TED: Ken Robinson"],
-  ["8jPQjjsBbIc", "TED: Simon Sinek"],
-  ["iCvmsMzlF7o", "Obama Harvard Speech"],
+  ["9hus12iCyL8", "Can we boost the immune system?"],
+  // ["H5BVbrZ64bQ", "Are we getting more allergic to things?"],
+  ["_5siHrpPnmw", "The health benefits of apples"],
 ] as const;
 
 function formatTime(secs: number) {
@@ -44,7 +44,9 @@ function pad(value: number) {
 
 function download(filename: string, text: string) {
   const anchor = document.createElement("a");
-  anchor.href = URL.createObjectURL(new Blob([text], { type: "text/plain;charset=utf-8" }));
+  anchor.href = URL.createObjectURL(
+    new Blob([text], { type: "text/plain;charset=utf-8" }),
+  );
   anchor.download = filename;
   anchor.click();
   URL.revokeObjectURL(anchor.href);
@@ -56,7 +58,9 @@ export default function Home() {
   const [currentVideoId, setCurrentVideoId] = useState("");
   const [blurOn, setBlurOn] = useState(false);
   const [largeOn, setLargeOn] = useState(false);
-  const [activeTab, setActiveTab] = useState<"shadowing" | "plain" | "paste">("shadowing");
+  const [activeTab, setActiveTab] = useState<"shadowing" | "plain" | "paste">(
+    "shadowing",
+  );
   const [activeSegment, setActiveSegment] = useState<number | null>(null);
   const [pasteText, setPasteText] = useState("");
   const [error, setError] = useState("");
@@ -65,11 +69,17 @@ export default function Home() {
   const stats = useMemo(() => {
     const totalSecs =
       segments.length > 0
-        ? Math.round(segments[segments.length - 1].start + segments[segments.length - 1].dur)
+        ? Math.round(
+            segments[segments.length - 1].start +
+              segments[segments.length - 1].dur,
+          )
         : 0;
     const mins = Math.floor(totalSecs / 60);
     const secs = totalSecs % 60;
-    const wordCount = segments.reduce((total, segment) => total + segment.text.split(" ").length, 0);
+    const wordCount = segments.reduce(
+      (total, segment) => total + segment.text.split(" ").length,
+      0,
+    );
 
     return {
       duration: `${mins}:${String(secs).padStart(2, "0")}`,
@@ -79,7 +89,8 @@ export default function Home() {
   }, [segments]);
 
   function toggleTheme() {
-    const current = document.documentElement.dataset.theme === "dark" ? "dark" : "light";
+    const current =
+      document.documentElement.dataset.theme === "dark" ? "dark" : "light";
     const next = current === "dark" ? "light" : "dark";
     document.documentElement.dataset.theme = next;
     document.documentElement.style.colorScheme = next;
@@ -95,7 +106,9 @@ export default function Home() {
 
     const videoId = extractYouTubeVideoId(trimmed);
     if (!videoId) {
-      setError("Enter a valid YouTube URL. Shorts, watch, embed, and youtu.be links are supported.");
+      setError(
+        "Enter a valid YouTube URL. Shorts, watch, embed, and youtu.be links are supported.",
+      );
       return;
     }
 
@@ -105,11 +118,17 @@ export default function Home() {
     setSegments([]);
 
     try {
-      const response = await fetch(`/api/transcript?videoId=${encodeURIComponent(videoId)}`);
-      const data = (await response.json()) as TranscriptResponse | { error?: string };
+      const response = await fetch(
+        `/api/transcript?videoId=${encodeURIComponent(videoId)}`,
+      );
+      const data = (await response.json()) as
+        | TranscriptResponse
+        | { error?: string };
 
       if (!response.ok || !("segments" in data) || data.segments.length === 0) {
-        throw new Error("error" in data && data.error ? data.error : "No transcript found.");
+        throw new Error(
+          "error" in data && data.error ? data.error : "No transcript found.",
+        );
       }
 
       setSegments(groupSegmentsIntoSentences(data.segments));
@@ -128,13 +147,17 @@ export default function Home() {
   }
 
   function copyAll() {
-    navigator.clipboard.writeText(segments.map((segment) => segment.text).join("\n")).then(() => {
-      alert("Copied to clipboard.");
-    });
+    navigator.clipboard
+      .writeText(segments.map((segment) => segment.text).join("\n"))
+      .then(() => {
+        alert("Copied to clipboard.");
+      });
   }
 
   function downloadTxt() {
-    const text = segments.map((segment) => `[${formatTime(segment.start)}] ${segment.text}`).join("\n");
+    const text = segments
+      .map((segment) => `[${formatTime(segment.start)}] ${segment.text}`)
+      .join("\n");
     download(`transcript_${currentVideoId || "script"}.txt`, text);
   }
 
@@ -160,10 +183,13 @@ export default function Home() {
       if (!trimmed) continue;
 
       const timeMatch =
-        trimmed.match(/^\[?(\d+):(\d+)\]?\s*(.*)/) || trimmed.match(/^\((\d+):(\d+)\)\s*(.*)/);
+        trimmed.match(/^\[?(\d+):(\d+)\]?\s*(.*)/) ||
+        trimmed.match(/^\((\d+):(\d+)\)\s*(.*)/);
 
       if (timeMatch) {
-        const start = Number.parseInt(timeMatch[1], 10) * 60 + Number.parseInt(timeMatch[2], 10);
+        const start =
+          Number.parseInt(timeMatch[1], 10) * 60 +
+          Number.parseInt(timeMatch[2], 10);
         const text = timeMatch[3].trim();
         if (text) parsed.push({ start, dur: 4, text });
       } else {
@@ -202,9 +228,20 @@ export default function Home() {
           Shadowing<span>You</span>
         </div>
         <div className="header-actions">
-          <button className="btn sm" type="button" onClick={toggleTheme} aria-label="Toggle theme">
-            <i className="ti ti-moon theme-icon theme-icon-light" aria-hidden="true" />
-            <i className="ti ti-sun theme-icon theme-icon-dark" aria-hidden="true" />
+          <button
+            className="btn sm"
+            type="button"
+            onClick={toggleTheme}
+            aria-label="Toggle theme"
+          >
+            <i
+              className="ti ti-moon theme-icon theme-icon-light"
+              aria-hidden="true"
+            />
+            <i
+              className="ti ti-sun theme-icon theme-icon-dark"
+              aria-hidden="true"
+            />
           </button>
         </div>
       </header>
@@ -217,7 +254,10 @@ export default function Home() {
             <br />
             <em>without friction</em>
           </h1>
-          <p>Paste a YouTube or Shorts link. Shadowing You turns available captions into a readable practice script.</p>
+          <p>
+            Paste a YouTube or Shorts link. Shadowing You turns available
+            captions into a readable practice script.
+          </p>
         </section>
 
         <section className="search-card">
@@ -235,22 +275,33 @@ export default function Home() {
                 if (event.key === "Enter") void fetchTranscript();
               }}
             />
-            <button className="btn primary" type="button" disabled={loading} onClick={() => void fetchTranscript()}>
+            <button
+              className="btn primary"
+              type="button"
+              disabled={loading}
+              onClick={() => void fetchTranscript()}
+            >
               <i className="ti ti-download" /> Extract transcript
             </button>
           </div>
           <div className="chips">
             <span className="chip-label">Examples</span>
             {examples.map(([videoId, label]) => (
-              <button className="chip" key={videoId} type="button" onClick={() => loadExample(videoId)}>
+              <button
+                className="chip"
+                key={videoId}
+                type="button"
+                onClick={() => loadExample(videoId)}
+              >
                 {label}
               </button>
             ))}
           </div>
-          <div className="notice">
-            <strong>How extraction works</strong> - The browser calls a local Next.js API route, and the server fetches
-            available public captions. If captions are disabled or unavailable, use manual paste below.
-          </div>
+          {/* <div className="notice">
+            <strong>How extraction works</strong> - The browser calls a local
+            Next.js API route, and the server fetches available public captions.
+            If captions are disabled or unavailable, use manual paste below.
+          </div> */}
         </section>
 
         {error ? (
@@ -259,7 +310,11 @@ export default function Home() {
               <strong>Transcript unavailable</strong>
               <p>{error}</p>
             </div>
-            <button className="btn sm" type="button" onClick={() => setActiveTab("paste")}>
+            <button
+              className="btn sm"
+              type="button"
+              onClick={() => setActiveTab("paste")}
+            >
               Paste manually
             </button>
           </section>
@@ -285,7 +340,9 @@ export default function Home() {
               </div>
               <div className="stat">
                 <div className="stat-label">Words</div>
-                <div className="stat-val">{stats.wordCount.toLocaleString()}</div>
+                <div className="stat-val">
+                  {stats.wordCount.toLocaleString()}
+                </div>
               </div>
             </div>
 
@@ -297,7 +354,11 @@ export default function Home() {
                   type="button"
                   onClick={() => setActiveTab(tab)}
                 >
-                  {tab === "shadowing" ? "Shadowing" : tab === "plain" ? "Plain text" : "Manual paste"}
+                  {tab === "shadowing"
+                    ? "Shadowing"
+                    : tab === "plain"
+                      ? "Plain text"
+                      : "Manual paste"}
                 </button>
               ))}
             </div>
@@ -323,9 +384,16 @@ export default function Home() {
                     </button>
                   </div>
                   <div className="sep" />
-                  <span className="controls-label">Click a line to open the video at that timestamp</span>
+                  <span className="controls-label">
+                    Click a line to open the video at that timestamp
+                  </span>
                   <div className="flex-1" />
-                  <button className="btn sm" type="button" disabled={segments.length === 0} onClick={copyAll}>
+                  <button
+                    className="btn sm"
+                    type="button"
+                    disabled={segments.length === 0}
+                    onClick={copyAll}
+                  >
                     <i className="ti ti-copy" /> Copy all
                   </button>
                 </div>
@@ -342,7 +410,9 @@ export default function Home() {
                         <span>{formatTime(segment.start)}</span>
                       </span>
                       <span className="seg-body">
-                        <span className={`seg-text ${blurOn ? "blur" : ""}`}>{segment.text}</span>
+                        <span className={`seg-text ${blurOn ? "blur" : ""}`}>
+                          {segment.text}
+                        </span>
                       </span>
                     </button>
                   ))}
@@ -353,17 +423,34 @@ export default function Home() {
             {activeTab === "plain" ? (
               <div className="tab-panel active">
                 <div className="action-bar plain-actions">
-                  <button className="btn sm" type="button" disabled={segments.length === 0} onClick={copyAll}>
+                  <button
+                    className="btn sm"
+                    type="button"
+                    disabled={segments.length === 0}
+                    onClick={copyAll}
+                  >
                     <i className="ti ti-copy" /> Copy
                   </button>
-                  <button className="btn sm" type="button" disabled={segments.length === 0} onClick={downloadTxt}>
+                  <button
+                    className="btn sm"
+                    type="button"
+                    disabled={segments.length === 0}
+                    onClick={downloadTxt}
+                  >
                     <i className="ti ti-file-download" /> Save .txt
                   </button>
-                  <button className="btn sm" type="button" disabled={segments.length === 0} onClick={downloadSrt}>
+                  <button
+                    className="btn sm"
+                    type="button"
+                    disabled={segments.length === 0}
+                    onClick={downloadSrt}
+                  >
                     <i className="ti ti-subtitles" /> Save .srt
                   </button>
                 </div>
-                <pre className="plain-text">{segments.map((segment) => segment.text).join("\n")}</pre>
+                <pre className="plain-text">
+                  {segments.map((segment) => segment.text).join("\n")}
+                </pre>
               </div>
             ) : null}
 
@@ -375,12 +462,18 @@ export default function Home() {
                 </div>
                 <p className="paste-hint">
                   If automatic extraction fails, copy text from{" "}
-                  <a href="https://youtubetranscript.com" target="_blank" rel="noreferrer">
+                  <a
+                    href="https://youtubetranscript.com"
+                    target="_blank"
+                    rel="noreferrer"
+                  >
                     youtubetranscript.com
                   </a>
-                  , YouTube captions, or another transcript source and paste it here.
+                  , YouTube captions, or another transcript source and paste it
+                  here.
                   <br />
-                  Timestamps such as <code>[0:00]</code> are parsed automatically.
+                  Timestamps such as <code>[0:00]</code> are parsed
+                  automatically.
                 </p>
                 <textarea
                   className="paste-area"
@@ -389,7 +482,11 @@ export default function Home() {
                   onChange={(event) => setPasteText(event.target.value)}
                 />
                 <div className="action-bar">
-                  <button className="btn primary" type="button" onClick={loadPasted}>
+                  <button
+                    className="btn primary"
+                    type="button"
+                    onClick={loadPasted}
+                  >
                     <i className="ti ti-player-play" /> Load for shadowing
                   </button>
                 </div>
