@@ -6,12 +6,12 @@ export const TRANSCRIPT_REQUEST_HEADERS = {
 
 export async function fetchText(url: string) {
   const response = await fetch(url, {
+    cache: "no-store",
     headers: TRANSCRIPT_REQUEST_HEADERS,
-    next: { revalidate: 3600 },
   });
 
   if (!response.ok) {
-    throw new Error(`Request returned ${response.status}.`);
+    throw new Error(`${new URL(url).hostname} returned ${response.status}.`);
   }
 
   return response.text();

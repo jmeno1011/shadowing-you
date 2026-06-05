@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { ReusableFooter } from "../components/reusable-footer";
 import { groupSegmentsIntoSentences } from "../lib/transcript-sentences";
 import { extractYouTubeVideoId } from "../lib/youtube-url";
 
@@ -15,8 +16,15 @@ type TranscriptResponse = {
   source?: string;
 };
 
+type TranscriptErrorResponse = {
+  error?: string;
+  reason?: "deployment_fetch_failed" | "no_public_transcript";
+};
+
 const NO_TRANSCRIPT_MESSAGE =
   "No public transcript found. Captions may be disabled for this video, unavailable for Shorts, or restricted by YouTube. Paste the transcript manually to continue.";
+const DEPLOYMENT_FETCH_MESSAGE =
+  "Transcript extraction is failing from the deployed server environment. This can happen when YouTube blocks or rate-limits requests from Vercel's server IPs. Paste the transcript manually for now, or use the debug URL to inspect provider failures.";
 
 const examples = [
   ["9hus12iCyL8", "Can we boost the immune system?"],
@@ -123,11 +131,12 @@ export default function Home() {
       );
       const data = (await response.json()) as
         | TranscriptResponse
-        | { error?: string };
+        | TranscriptErrorResponse;
 
       if (!response.ok || !("segments" in data) || data.segments.length === 0) {
+        const reason = "reason" in data && data.reason ? `${data.reason}: ` : "";
         throw new Error(
-          "error" in data && data.error ? data.error : "No transcript found.",
+          "error" in data && data.error ? `${reason}${data.error}` : "No transcript found.",
         );
       }
 
@@ -136,7 +145,10 @@ export default function Home() {
     } catch (err) {
       const message = err instanceof Error ? err.message : "";
       setError(
-        message.includes("No public transcript found")
+        message.includes("deployment_fetch_failed") ||
+          message.includes("deployment environment")
+          ? DEPLOYMENT_FETCH_MESSAGE
+          : message.includes("No public transcript found")
           ? NO_TRANSCRIPT_MESSAGE
           : "Transcript extraction failed. Paste the transcript manually to continue.",
       );
@@ -496,7 +508,7 @@ export default function Home() {
         ) : null}
       </main>
 
-      <footer>Shadowing You - YouTube and Shorts transcript practice</footer>
+      <ReusableFooter />
     </>
   );
 }

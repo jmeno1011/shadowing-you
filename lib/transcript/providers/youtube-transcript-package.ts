@@ -8,13 +8,19 @@ export const youtubeTranscriptPackageProvider: TranscriptProvider = {
 };
 
 async function fetchFromYoutubeTranscriptPackage(videoId: string) {
+  let englishError: unknown;
+
   try {
     return normalizePackageTranscript(await YoutubeTranscript.fetchTranscript(videoId, { lang: "en" }));
-  } catch {
+  } catch (error) {
+    englishError = error;
+
     try {
       return normalizePackageTranscript(await YoutubeTranscript.fetchTranscript(videoId));
-    } catch {
-      return [];
+    } catch (fallbackError) {
+      throw new Error(
+        `youtube-transcript failed. english=${readErrorMessage(englishError)} fallback=${readErrorMessage(fallbackError)}`,
+      );
     }
   }
 }
@@ -29,4 +35,8 @@ function normalizePackageTranscript(
       text: normalizeWhitespace(item.text),
     }))
     .filter((item) => item.text.length > 0);
+}
+
+function readErrorMessage(error: unknown) {
+  return error instanceof Error ? error.message : String(error);
 }

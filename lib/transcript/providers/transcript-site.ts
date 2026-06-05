@@ -8,9 +8,5 @@ export const transcriptSiteProvider: TranscriptProvider = {
 };
 
 async function fetchFromTranscriptSite(videoId: string) {
-  try {
-    return parseTranscriptSiteHtml(await fetchText(`https://youtubetranscript.com/?server_vid2=${videoId}`));
-  } catch {
-    return [];
-  }
+  return parseTranscriptSiteHtml(await fetchText(`https://youtubetranscript.com/?server_vid2=${videoId}`));
 }

@@ -88,10 +88,44 @@ type Segment = {
 
 현재 구조에서는 클라이언트가 외부 transcript 사이트나 CORS 프록시를 직접 호출하지 않는다. 클라이언트는 같은 origin의 `/api/transcript`만 호출하고, 외부 요청은 Next.js 서버 라우트에서 처리한다. 서버 간 요청에는 브라우저 CORS 제한이 적용되지 않으므로 공개 CORS 프록시가 필요 없다.
 
+## Vercel 배포 환경에서의 추출 실패
+
+로컬에서는 같은 영상의 자막이 추출되지만 Vercel 배포 사이트에서는 다음 응답이 나올 수 있다.
+
+```json
+{
+  "error": "Transcript extraction failed from this deployment environment.",
+  "reason": "deployment_fetch_failed"
+}
+```
+
+이 경우 영상에 자막이 없다는 뜻이 아니라, Vercel 서버리스 함수의 outbound 요청이 YouTube 또는 보조 transcript 사이트에서 차단되거나 rate limit을 받은 상황일 수 있다. 로컬 개발 환경과 Vercel 배포 환경은 요청 IP, 데이터센터, 네트워크 평판이 다르기 때문에 같은 video id도 결과가 다를 수 있다.
+
+진단 방법:
+
+```bash
+curl "https://YOUR_DEPLOYMENT_URL/api/transcript?videoId=_5siHrpPnmw&debug=1"
+```
+
+`debug=1`을 붙이면 provider별 시도 결과가 `attempts`로 반환된다. 예를 들어 `youtube-transcript-package`, `youtube-captions`, `youtubetranscript` 중 어느 경로가 HTTP 403, captcha, 빈 결과, 파싱 실패를 냈는지 확인할 수 있다.
+
+적용한 완화:
+
+- transcript 외부 요청은 `cache: "no-store"`로 실행해 Vercel 캐시에 실패 응답이 고정되지 않게 한다.
+- provider 실패 이유를 삼키지 않고 API에서 `reason`으로 구분한다.
+- UI는 `no_public_transcript`와 `deployment_fetch_failed`를 다른 메시지로 보여준다.
+
+장기 운영 대안:
+
+- Vercel 대신 YouTube 요청이 안정적인 별도 Node 서버에서 `/api/transcript`를 운영한다.
+- 신뢰 가능한 유료 transcript API를 provider로 추가하고 API key를 Vercel 환경 변수로 관리한다.
+- 공식 YouTube Data API는 caption 파일 다운로드에 OAuth/권한 제약이 있어 공개 영상 임의 자막 추출용 대체재로는 제한적이다.
+
 ## 한계
 
 - 영상에 공개 자막이 없으면 자동 추출은 실패한다.
 - YouTube가 특정 서버 요청을 제한하면 자동 추출이 실패할 수 있다.
+- Vercel 서버리스 IP가 YouTube 또는 보조 transcript 사이트에서 제한되면 로컬과 배포 결과가 달라질 수 있다.
 - Shorts도 video id 기반으로 동일하게 처리되지만, Shorts 영상 자체에 자막이 없으면 가져올 수 없다.
 - 안정적인 상용 운영에는 공식 YouTube Data API 또는 신뢰 가능한 유료 transcript API 검토가 필요하다.
 
