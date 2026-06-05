@@ -40,7 +40,7 @@ Test:
 
 ```bash
 curl "http://localhost:4100/health"
-curl "http://localhost:4100/transcript?videoId=_5siHrpPnmw" \
+curl "http://localhost:4100/transcript?videoId=_5siHrpPnmw&debug=1" \
   -H "Authorization: Bearer local-secret"
 ```
 
@@ -97,6 +97,36 @@ The first attempt should be:
   "status": "success"
 }
 ```
+
+## Postman Test
+
+Health:
+
+```text
+GET https://YOUR_RENDER_SERVICE.onrender.com/health
+```
+
+Transcript:
+
+```text
+GET https://YOUR_RENDER_SERVICE.onrender.com/transcript?videoId=_5siHrpPnmw&debug=1
+```
+
+Headers:
+
+```text
+Authorization: Bearer your-secret-token
+```
+
+If it succeeds, the response includes `segments` and `attempts`.
+
+If it fails with `502`, check `attempts`:
+
+- `youtube-transcript-package`: package-based InnerTube/web fallback
+- `youtube-captions`: direct YouTube watch page caption metadata fallback
+- `youtubetranscript`: youtubetranscript.com fallback
+
+If every provider fails or returns empty on Render but works locally, the Render server environment is also being blocked or served limited YouTube metadata.
 
 ## Render Free Tier Note
 
