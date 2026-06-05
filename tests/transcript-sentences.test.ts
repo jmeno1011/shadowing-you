@@ -40,6 +40,36 @@ test("keeps trailing text as a final sentence when punctuation is missing", () =
   ]);
 });
 
+test("splits multiple sentences that arrive in a single caption segment", () => {
+  const result = groupSegmentsIntoSentences([
+    {
+      start: 7,
+      dur: 23,
+      text:
+        "My for you page is just six rappers around the same Claude API key. I thought I had died and went to hell, but I realized this can't be hell because this is my terminal emulator. It's 3D.",
+    },
+  ]);
+
+  assert.deepEqual(result, [
+    {
+      start: 7,
+      dur: 23 / 3,
+      text: "My for you page is just six rappers around the same Claude API key.",
+    },
+    {
+      start: 7 + 23 / 3,
+      dur: 23 / 3,
+      text:
+        "I thought I had died and went to hell, but I realized this can't be hell because this is my terminal emulator.",
+    },
+    {
+      start: 7 + (23 / 3) * 2,
+      dur: 23 / 3,
+      text: "It's 3D.",
+    },
+  ]);
+});
+
 test("does not merge standalone stage directions with spoken sentences", () => {
   const result = groupSegmentsIntoSentences([
     { start: 20, dur: 1, text: "(Laughter)" },

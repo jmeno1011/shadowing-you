@@ -1,4 +1,4 @@
-# ShadowScript - YouTube 쉐도잉 도구
+# Shadowing You - YouTube 쉐도잉 도구
 
 YouTube URL을 입력하면 공개 자막을 추출해 영어 쉐도잉 연습에 맞게 보여주는 Next.js 앱입니다.
 
@@ -85,6 +85,7 @@ shadowing/
 │   ├── globals.css
 │   ├── layout.tsx
 │   └── page.tsx
+├── lib/transcript/
 ├── next.config.ts
 ├── package-lock.json
 ├── package.json

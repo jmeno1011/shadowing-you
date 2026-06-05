@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "ShadowScript - YouTube and Shorts Transcript Practice",
+  title: "Shadowing You - YouTube and Shorts Transcript Practice",
   description: "Readable YouTube and Shorts captions for English shadowing practice",
 };
 

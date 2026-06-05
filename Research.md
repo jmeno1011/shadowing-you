@@ -1,8 +1,8 @@
-# ShadowScript Research
+# Shadowing You Research
 
 ## 목적
 
-ShadowScript는 YouTube 일반 영상 또는 Shorts URL을 입력받아 공개 자막을 가져오고, 영어 쉐도잉 연습에 맞게 세그먼트 단위로 보여주는 Next.js 앱이다.
+Shadowing You는 YouTube 일반 영상 또는 Shorts URL을 입력받아 공개 자막을 가져오고, 영어 쉐도잉 연습에 맞게 세그먼트 단위로 보여주는 Next.js 앱이다.
 
 ## 사용 기술
 
@@ -11,6 +11,7 @@ ShadowScript는 YouTube 일반 영상 또는 Shorts URL을 입력받아 공개 �
 - TypeScript: URL 파싱, 자막 세그먼트, API 응답 타입을 명시한다.
 - `youtube-transcript`: 서버에서 YouTube InnerTube 기반 자막 추출을 먼저 시도한다.
 - Next.js Route Handler: `/api/transcript`에서 브라우저 대신 서버가 외부 자막 요청을 처리한다.
+- Transcript service/provider modules: 자막 소스별 구현을 분리하고 순차 fallback을 관리한다.
 - Node test runner + `tsx`: YouTube URL 파서 테스트를 실행한다.
 - Vercel: Next.js 앱 배포 대상으로 사용한다.
 
@@ -49,7 +50,14 @@ https://m.youtube.com/shorts/DfPWbttemYE
 
 ## 자막 추출 방식
 
-서버 라우트는 `app/api/transcript/route.ts`에 있다.
+서버 라우트는 `app/api/transcript/route.ts`에 있고, 실제 자막 획득 로직은 `lib/transcript/` 아래에 분리되어 있다.
+
+구조:
+
+- `app/api/transcript/route.ts`: video id 검증, `getTranscript()` 호출, HTTP 응답 상태 결정
+- `lib/transcript/service.ts`: provider 순서 제어와 fallback 처리
+- `lib/transcript/providers/`: `youtube-transcript`, YouTube caption metadata, `youtubetranscript.com` 소스별 호출
+- `lib/transcript/parsers/`: caption track JSON, classic timedtext XML, `srv3` XML, fallback HTML 파싱
 
 우선순위:
 

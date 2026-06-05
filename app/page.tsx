@@ -199,7 +199,7 @@ export default function Home() {
       <header>
         <div className="logo">
           <i className="ti ti-microphone" />
-          Shadow<span>Script</span>
+          Shadowing<span>You</span>
         </div>
         <div className="header-actions">
           <button className="btn sm" type="button" onClick={toggleTheme} aria-label="Toggle theme">
@@ -217,7 +217,7 @@ export default function Home() {
             <br />
             <em>without friction</em>
           </h1>
-          <p>Paste a YouTube or Shorts link. ShadowScript turns available captions into a readable practice script.</p>
+          <p>Paste a YouTube or Shorts link. Shadowing You turns available captions into a readable practice script.</p>
         </section>
 
         <section className="search-card">
@@ -399,7 +399,7 @@ export default function Home() {
         ) : null}
       </main>
 
-      <footer>ShadowScript - YouTube and Shorts transcript practice</footer>
+      <footer>Shadowing You - YouTube and Shorts transcript practice</footer>
     </>
   );
 }

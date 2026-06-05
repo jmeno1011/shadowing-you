@@ -6,12 +6,13 @@ export type TranscriptSegment = {
 
 const SENTENCE_END_PATTERN = /(?:[.!?]|[.!?]["')\]])$/;
 const STAGE_DIRECTION_PATTERN = /^\([^)]*\)$/;
+const INTERNAL_SENTENCE_PATTERN = /[^.!?]+(?:[.!?]+["')\]]*|$)/g;
 
 export function groupSegmentsIntoSentences(segments: TranscriptSegment[]): TranscriptSegment[] {
   const grouped: TranscriptSegment[] = [];
   let current: TranscriptSegment | null = null;
 
-  for (const segment of segments) {
+  for (const segment of expandMultiSentenceSegments(segments)) {
     const text = segment.text.replace(/\s+/g, " ").trim();
     if (!text) continue;
 
@@ -53,4 +54,36 @@ export function groupSegmentsIntoSentences(segments: TranscriptSegment[]): Trans
 
 function isSentenceEnd(text: string) {
   return SENTENCE_END_PATTERN.test(text.trim());
+}
+
+function expandMultiSentenceSegments(segments: TranscriptSegment[]) {
+  const expanded: TranscriptSegment[] = [];
+
+  for (const segment of segments) {
+    const parts = splitIntoSentenceParts(segment.text);
+
+    if (parts.length <= 1) {
+      expanded.push(segment);
+      continue;
+    }
+
+    const dur = segment.dur / parts.length;
+    parts.forEach((text, index) => {
+      expanded.push({
+        start: segment.start + dur * index,
+        dur,
+        text,
+      });
+    });
+  }
+
+  return expanded;
+}
+
+function splitIntoSentenceParts(text: string) {
+  const normalized = text.replace(/\s+/g, " ").trim();
+  if (!normalized) return [];
+
+  const parts = normalized.match(INTERNAL_SENTENCE_PATTERN)?.map((part) => part.trim()).filter(Boolean) || [];
+  return parts.length > 0 ? parts : [normalized];
 }
