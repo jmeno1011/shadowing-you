@@ -13,7 +13,7 @@ Shadowing You는 YouTube 일반 영상 또는 Shorts URL을 입력받아 공개 
 - Next.js Route Handler: `/api/transcript`에서 브라우저 대신 서버가 외부 자막 요청을 처리한다.
 - Transcript service/provider modules: 자막 소스별 구현을 분리하고 순차 fallback을 관리한다.
 - Node test runner + `tsx`: YouTube URL 파서 테스트를 실행한다.
-- Vercel: Next.js 앱 배포 대상으로 사용한다.
+- Local-first deployment: 최종 사용 방식은 배포형 서비스가 아니라 개인 로컬 실행이다.
 
 ## 전체 작동 흐름
 
@@ -23,6 +23,18 @@ Shadowing You는 YouTube 일반 영상 또는 Shorts URL을 입력받아 공개 
 4. Next.js 서버 API가 자막을 가져온다.
 5. API는 자막을 `{ start, dur, text }` 배열로 정규화해 클라이언트에 반환한다.
 6. 클라이언트는 세그먼트 목록, 전체 텍스트, 다운로드용 `.txt`/`.srt` 데이터를 렌더링한다.
+
+## 로컬 개인용으로 마무리한 이유
+
+로컬에서는 transcript 요청이 사용자의 개인/가정/일반 ISP IP에서 나간다. YouTube와 보조 transcript 사이트는 이런 요청을 일반 사용자 트래픽으로 취급할 가능성이 높다.
+
+반면 Vercel, Render 같은 배포 서버는 데이터센터 IP를 사용한다. 데이터센터 IP는 scraping, automation, 대량 수집 트래픽과 연관될 수 있어 YouTube caption metadata가 축소되거나 차단될 수 있다. 실제 확인 결과 로컬에서는 자막이 추출되는 영상도 배포 서버에서는 `Transcript is disabled`, `No public transcript found`, `403`, `deployment_fetch_failed` 형태로 실패했다.
+
+따라서 이 프로젝트는 최종적으로 배포형 서비스가 아니라 개인 로컬 사용용으로 정리한다.
+
+데스크톱 앱으로 만들면 Electron 또는 Tauri 앱이 사용자의 컴퓨터에서 실행되므로 로컬 IP를 계속 사용할 수 있다. 현재 Next.js 앱을 가장 쉽게 감싸는 방향은 Electron이다.
+
+크롬 익스텐션도 가능하다. 사용자의 브라우저/네트워크에서 실행되므로 배포 서버 IP 문제를 피할 수 있다. 다만 Manifest V3, host permission, CORS, YouTube DOM/API 변화에 대한 제약이 있다.
 
 ## Shorts URL 처리 방식
 
